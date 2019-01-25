@@ -7,19 +7,23 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
 
-    //MARK: - Local Variables and ViewDidLoad
+    //MARK: - Global Variables and Constants
     var itemArray = [Item]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        
+        searchBar.delegate = self
+        
         loadItems()
     }
-    
     
     //MARK: - Table View Setup and Logic
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -43,9 +47,22 @@ class TodoListViewController: UITableViewController {
         let item = itemArray[indexPath.row]
         item.done = !item.done
         tableView.deselectRow(at: indexPath, animated: true)
-        saveItemArray()
+        createUpdateItems()
     }
     
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            deleteItem(item: itemArray[indexPath.row])
+            itemArray.remove(at: indexPath.row)
+            createUpdateItems()
+        }
+    }
+    
+    @IBOutlet weak var searchBar: UISearchBar!
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         //MARK: Add Button Pressed Handler
@@ -59,39 +76,54 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Add Item", style: .default)
         {(action) in
-            let newItem = Item(Title: textField.text!, Done: false)
+            let newItem = Item(context: self.context)
+            newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
-            self.saveItemArray()
+            self.createUpdateItems()
         })
         
         present(alert, animated: true, completion: nil)
     }
     
-    //MARK: - Encode/Decode of Items plist file
-    func loadItems() {
-        //MARK: Decode Todo Items
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            
-            do{
-                itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding item array, \(error)")
-            }
-        }
-    }
-    
-    func saveItemArray() {
-        //MARK: Encode Todo Items
-        let encoder = PropertyListEncoder()
-        
-        do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+    //MARK: - CRUD Operations on CoreData Table
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+        do{
+            itemArray = try context.fetch(request)
         } catch {
-            print("Error encoding item array, \(error)")
+            print("Error fetching data from context: \(error)")
         }
         
         self.tableView.reloadData()
+    }
+    
+    func createUpdateItems() {
+        do {
+            try context.save()
+        } catch {
+            print("Error saving context: \(error)")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func deleteItem(item: Item) {
+        context.delete(item)
+    }
+}
+
+//MARK: - Search bar delegate
+extension TodoListViewController: UISearchBarDelegate {   
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.count > 0 {
+            let request: NSFetchRequest<Item> = Item.fetchRequest()
+            
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            loadItems(with: request)
+        }else{
+            loadItems()
+        }
     }
 }
