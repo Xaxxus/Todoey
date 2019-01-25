@@ -20,9 +20,10 @@ class TodoListViewController: UITableViewController {
         
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        readItems()
+        searchBar.delegate = self
+        
+        loadItems()
     }
-    
     
     //MARK: - Table View Setup and Logic
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -61,6 +62,7 @@ class TodoListViewController: UITableViewController {
         }
     }
     
+    @IBOutlet weak var searchBar: UISearchBar!
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         //MARK: Add Button Pressed Handler
@@ -85,13 +87,14 @@ class TodoListViewController: UITableViewController {
     }
     
     //MARK: - CRUD Operations on CoreData Table
-    func readItems() {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
         do{
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from context: \(error)")
         }
+        
+        self.tableView.reloadData()
     }
     
     func createUpdateItems() {
@@ -105,5 +108,22 @@ class TodoListViewController: UITableViewController {
     
     func deleteItem(item: Item) {
         context.delete(item)
+    }
+}
+
+//MARK: - Search bar delegate
+extension TodoListViewController: UISearchBarDelegate {   
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.count > 0 {
+            let request: NSFetchRequest<Item> = Item.fetchRequest()
+            
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            loadItems(with: request)
+        }else{
+            loadItems()
+        }
     }
 }
