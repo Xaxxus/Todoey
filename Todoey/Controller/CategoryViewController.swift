@@ -17,7 +17,6 @@ class CategoryViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         loadCategories()
     }
 
@@ -48,14 +47,14 @@ class CategoryViewController: UITableViewController {
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         //MARK: Add Button Pressed Handler
         var textField = UITextField()
-        let alert = UIAlertController(title: "Add To Do Item", message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add To Do Category", message: nil, preferredStyle: .alert)
         
         alert.addTextField { (newTextField) in
-            newTextField.placeholder = "example: Get Milk"
+            newTextField.placeholder = "example: Work To Do Items"
             textField = newTextField
         }
         
-        alert.addAction(UIAlertAction(title: "Add Item", style: .default)
+        alert.addAction(UIAlertAction(title: "Add Category", style: .default)
         {(action) in
             let newItem = Category(context: self.context)
             newItem.categoryName = textField.text!
