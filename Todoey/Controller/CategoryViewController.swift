@@ -40,17 +40,18 @@ class CategoryViewController: UITableViewController {
         if editingStyle == .delete {
             deleteCategory(category: categoryArray[indexPath.row])
             categoryArray.remove(at: indexPath.row)
-            createUpdateCategories()
+            saveCategories()
         }
     }
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         //MARK: Add Button Pressed Handler
         var textField = UITextField()
-        let alert = UIAlertController(title: "Add To Do Category", message: nil, preferredStyle: .alert)
+        
+        let alert = UIAlertController(title: "Add New Category", message: nil, preferredStyle: .alert)
         
         alert.addTextField { (newTextField) in
-            newTextField.placeholder = "example: Work To Do Items"
+            newTextField.placeholder = "example: Work"
             textField = newTextField
         }
         
@@ -59,7 +60,7 @@ class CategoryViewController: UITableViewController {
             let newItem = Category(context: self.context)
             newItem.categoryName = textField.text!
             self.categoryArray.append(newItem)
-            self.createUpdateCategories()
+            self.saveCategories()
         })
         
         present(alert, animated: true, completion: nil)
@@ -75,12 +76,13 @@ class CategoryViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    func createUpdateCategories() {
+    func saveCategories() {
         do {
             try context.save()
         } catch {
             print("Error saving context: \(error)")
         }
+        
         self.tableView.reloadData()
     }
     

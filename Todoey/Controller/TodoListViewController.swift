@@ -45,7 +45,7 @@ class TodoListViewController: UITableViewController {
         let item = itemArray[indexPath.row]
         item.done = !item.done
         tableView.deselectRow(at: indexPath, animated: true)
-        createUpdateItems()
+        saveItems()
     }
     
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -56,7 +56,7 @@ class TodoListViewController: UITableViewController {
         if editingStyle == .delete {
             deleteItem(item: itemArray[indexPath.row])
             itemArray.remove(at: indexPath.row)
-            createUpdateItems()
+            saveItems()
         }
     }
     
@@ -78,7 +78,7 @@ class TodoListViewController: UITableViewController {
             newItem.title = textField.text!
             newItem.done = false
             self.itemArray.append(newItem)
-            self.createUpdateItems()
+            self.saveItems()
         })
         
         present(alert, animated: true, completion: nil)
@@ -95,7 +95,7 @@ class TodoListViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    func createUpdateItems() {
+    func saveItems() {
         do {
             try context.save()
         } catch {
