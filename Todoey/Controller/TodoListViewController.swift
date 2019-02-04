@@ -10,8 +10,6 @@ import UIKit
 import RealmSwift
 
 class TodoListViewController: UITableViewController {
-
-    //MARK: - Global Variables and Constants
     var items : Results<Item>?
     
     let realm = try! Realm()
@@ -28,15 +26,12 @@ class TodoListViewController: UITableViewController {
         searchBar.delegate = self        
     }
     
-    //MARK: - Table View Setup and Logic
+    //MARK: - table view datasource
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        //MARK: Get Number of Rows In Section
         return items?.count ?? 1
     }
     
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //MARK: Get Cell For Row At
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoListItem", for: indexPath)
         
         if let item = items?[indexPath.row]{
@@ -50,9 +45,7 @@ class TodoListViewController: UITableViewController {
         return cell
     }
     
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //MARK: Row Selected Handler
         if let item = items?[indexPath.row]{
             do {
                 try realm.write{
@@ -82,8 +75,8 @@ class TodoListViewController: UITableViewController {
     
     @IBOutlet weak var searchBar: UISearchBar!
     
+    //MARK: - CRUD Operations on CoreData Table
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
-        //MARK: Add Button Pressed Handler
         var textField = UITextField()
         
         let alert = UIAlertController(title: "Add To Do Item", message: nil, preferredStyle: .alert)
@@ -115,7 +108,6 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    //MARK: - CRUD Operations on CoreData Table
     func loadItems() {
         items = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
